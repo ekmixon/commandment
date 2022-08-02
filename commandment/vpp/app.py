@@ -39,7 +39,7 @@ def upload_token():
 
     f = request.files['file']
 
-    if not f.content_type == 'application/octet-stream':
+    if f.content_type != 'application/octet-stream':
         abort(400, 'incorrect MIME type in request')
 
     data = f.read()

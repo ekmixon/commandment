@@ -130,8 +130,11 @@ class ManagedApplicationList(ResourceList):
             try:
                 self.session.query(Application).filter_by(id=view_kwargs['application_id']).one()
             except NoResultFound:
-                raise ObjectNotFound({'parameter': 'application_id'},
-                                     "Application: {} not found".format(view_kwargs['application_id']))
+                raise ObjectNotFound(
+                    {'parameter': 'application_id'},
+                    f"Application: {view_kwargs['application_id']} not found",
+                )
+
             else:
                 query_ = query_.join(Application).filter(Application.id == view_kwargs['application_id'])
         return query_

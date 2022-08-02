@@ -4,7 +4,7 @@ from enum import Enum, IntEnum
 
 class VPPPricingParam(Enum):
     """Valid values for the VPP pricingParam argument."""
-    
+
     StandardQuality = 'STDQ'
     """str: Standard Quality"""
     HighQuality = 'PLUS'

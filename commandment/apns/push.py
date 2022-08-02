@@ -19,19 +19,22 @@ import json
 
 def get_apns() -> apns2.APNSClient:
     apns = getattr(g, '_apns', None)
-    
+
     if apns is None:
         push_certificate_path = current_app.config['PUSH_CERTIFICATE']
         if not os.path.exists(push_certificate_path):
-            raise RuntimeError('You specified a push certificate at: {}, but it does not exist.'.format(push_certificate_path))
+            raise RuntimeError(
+                f'You specified a push certificate at: {push_certificate_path}, but it does not exist.'
+            )
+
 
         client_cert = push_certificate_path  # can be a single path or tuple of 2
 
         # We can handle loading PKCS#12 but APNS2Client specifically requests PEM encoded certificates
         push_certificate_basename, ext = os.path.splitext(push_certificate_path)
         if ext.lower() == '.p12':
-            pem_key_path = push_certificate_basename + '.key'
-            pem_certificate_path = push_certificate_basename + '.crt'
+            pem_key_path = f'{push_certificate_basename}.key'
+            pem_certificate_path = f'{push_certificate_basename}.crt'
 
             if not os.path.exists(pem_key_path) or not os.path.exists(pem_certificate_path):
                 current_app.logger.info('You provided a PKCS#12 push certificate, we will have to encode it as PEM to continue...')
@@ -55,7 +58,7 @@ def get_apns() -> apns2.APNSClient:
                     fd.write(crypto_cert.public_bytes(serialization.Encoding.PEM))
 
             client_cert = pem_certificate_path, pem_key_path
-        
+
         try:
             apns = g._apns = apns2.APNSClient(mode='prod', client_cert=client_cert)
         except:
@@ -94,9 +97,10 @@ def push_to_device(device: Device) -> apns2.Response:
     Returns:
         APNS2Client Response object
     """
-    current_app.logger.debug('Sending a push notification to {} on topic {}, using push magic: {}'.format(
-        device.hex_token, device.topic, device.push_magic
-    ))
+    current_app.logger.debug(
+        f'Sending a push notification to {device.hex_token} on topic {device.topic}, using push magic: {device.push_magic}'
+    )
+
     client = get_apns()
     payload = MDMPayload(device.push_magic)
     notification = apns2.Notification(payload, priority=apns2.PRIORITY_LOW)

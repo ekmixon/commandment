@@ -12,9 +12,9 @@ PlatformRequirements = Dict[Platform, PlatformVersion]
 class CommandRegistry(type):
     command_classes: Dict[str, Type] = {}
 
-    def __new__(mcs, name, bases, namespace, **kwds):
+    def __new__(cls, name, bases, namespace, **kwds):
         ns = dict(namespace)
-        klass = type.__new__(mcs, name, bases, ns)
+        klass = type.__new__(cls, name, bases, ns)
         if 'request_type' in ns:
             CommandRegistry.command_classes[ns['request_type']] = klass
 
@@ -79,11 +79,10 @@ class Command(metaclass=CommandRegistry):
         Returns:
               Command class that corresponds to the request type given. Inherits from Command.
         """
-        if request_type in CommandRegistry.command_classes:
-            klass = CommandRegistry.command_classes[request_type]
-            return klass(uuid, **parameters)
-        else:
-            raise ValueError('No such RequestType registered: {}'.format(request_type))
+        if request_type not in CommandRegistry.command_classes:
+            raise ValueError(f'No such RequestType registered: {request_type}')
+        klass = CommandRegistry.command_classes[request_type]
+        return klass(uuid, **parameters)
 
     def to_dict(self) -> dict:
         """Convert the command into a dict that will be serializable by plistlib.
@@ -448,8 +447,7 @@ class InstalledApplicationList(Command):
 
     def __init__(self, uuid: Optional[UUID]=None, **kwargs):
         super(InstalledApplicationList, self).__init__(uuid)
-        self._attrs = {}
-        self._attrs.update(kwargs)
+        self._attrs = {} | kwargs
 
     @property
     def managed_apps_only(self) -> Optional[bool]:
@@ -492,7 +490,7 @@ class InstallApplication(Command):
             self._attrs['ManagementFlags'] = 1
             self._attrs['ChangeManagementState'] = 'Managed'
         else:
-            self._attrs.update(kwargs)
+            self._attrs |= kwargs
 
     @property
     def itunes_store_id(self) -> Optional[int]:

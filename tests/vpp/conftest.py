@@ -28,7 +28,7 @@ SERVICE_CONFIG = {
 
 @pytest.fixture
 def simulator_token() -> str:
-    res = requests.get('{}/internal/get_stoken'.format(SIMULATOR_URL))
+    res = requests.get(f'{SIMULATOR_URL}/internal/get_stoken')
     return res.json().get('sToken', None)
 
 

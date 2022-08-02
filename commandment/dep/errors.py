@@ -19,7 +19,7 @@ class DEPServiceError(HTTPError):
             self.text = "NO_REASON_GIVEN"
 
     def __str__(self):
-        return '{}: {}'.format(self.response.status_code, self.text)
+        return f'{self.response.status_code}: {self.text}'
 
 
 class DEPClientError(Exception):

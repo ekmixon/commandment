@@ -16,8 +16,8 @@ from alembic.config import Config
 
 TEST_DATABASE_URI = 'sqlite:///:memory:'
 TEST_DIR = os.path.realpath(os.path.dirname(__file__))
-ALEMBIC_CONFIG = os.path.realpath(TEST_DIR + '/alembic_test.ini')
-TEST_APP_CONFIG = os.path.realpath(TEST_DIR + '/../travis-ci-settings.cfg')
+ALEMBIC_CONFIG = os.path.realpath(f'{TEST_DIR}/alembic_test.ini')
+TEST_APP_CONFIG = os.path.realpath(f'{TEST_DIR}/../travis-ci-settings.cfg')
 
 
 @pytest.yield_fixture(scope='function')

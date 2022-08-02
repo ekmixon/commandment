@@ -90,12 +90,9 @@ except ImportError:
         @classmethod
         def coerce(cls, index, value):
             """Convert plain list to instance of this class."""
-            if not isinstance(value, cls):
-                if isinstance(value, list):
-                    return cls(value)
-                return Mutable.coerce(index, value)
-            else:
+            if isinstance(value, cls):
                 return value
+            return cls(value) if isinstance(value, list) else Mutable.coerce(index, value)
 
         def __getstate__(self):
             return list(self)

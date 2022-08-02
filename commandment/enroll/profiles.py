@@ -81,17 +81,15 @@ def ca_trust_payload_from_configuration() -> PEMCertificatePayload:
 
     with open(current_app.config['CA_CERTIFICATE'], 'rb') as fd:
         pem_data = fd.read()
-        pem_payload = PEMCertificatePayload(
+        return PEMCertificatePayload(
             uuid=uuid4(),
-            identifier=org.payload_prefix + '.ca',
+            identifier=f'{org.payload_prefix}.ca',
             payload_content=pem_data,
             display_name='Certificate Authority',
             description='Required for your device to trust the server',
             type='com.apple.security.root',
-            version=1
+            version=1,
         )
-
-        return pem_payload
 
 
 def ssl_trust_payload_from_configuration() -> PEMCertificatePayload:
@@ -109,16 +107,15 @@ def ssl_trust_payload_from_configuration() -> PEMCertificatePayload:
     certpath = os.path.join(basepath, current_app.config['SSL_CERTIFICATE'])
 
     with open(certpath, 'rb') as fd:
-        pem_payload = PEMCertificatePayload(
+        return PEMCertificatePayload(
             uuid=uuid4(),
-            identifier=org.payload_prefix + '.ssl',
+            identifier=f'{org.payload_prefix}.ssl',
             payload_content=fd.read(),
             display_name='Web Server Certificate',
             description='Required for your device to trust the server',
             type='com.apple.security.pkcs1',
-            version=1
+            version=1,
         )
-        return pem_payload
 
 
 def identity_payload(private_key: rsa.RSAPrivateKeyWithSerialization,
@@ -134,16 +131,14 @@ def identity_payload(private_key: rsa.RSAPrivateKeyWithSerialization,
 
     pkcs12_data = create_pkcs12(private_key, certificate, passphrase)
 
-    pkcs12_payload = PKCS12CertificatePayload(
+    return PKCS12CertificatePayload(
         uuid=uuid4(),
         certificate_file_name='device_identity.p12',
-        identifier=org.payload_prefix + '.identity',
+        identifier=f'{org.payload_prefix}.identity',
         display_name='Device Identity Certificate',
         description='Required to identify your device to the MDM',
         type='com.apple.security.pkcs12',
         password=passphrase,
         payload_content=pkcs12_data,
-        version=1
+        version=1,
     )
-
-    return pkcs12_payload

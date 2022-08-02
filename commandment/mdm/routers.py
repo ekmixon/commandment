@@ -31,12 +31,17 @@ class CommandRouter(object):
         self._handlers: CommandHandlers = {}
 
     def handle(self, command: Command, device: Device, response: dict):
-        current_app.logger.debug('Looking for handler using command: {}'.format(command.request_type))
+        current_app.logger.debug(
+            f'Looking for handler using command: {command.request_type}'
+        )
+
         if command.request_type in self._handlers:
             return self._handlers[command.request_type](command, device, response)
-        else:
-            current_app.logger.warning('No handler found to process command response: {}'.format(command.request_type))
-            return None
+        current_app.logger.warning(
+            f'No handler found to process command response: {command.request_type}'
+        )
+
+        return None
 
     def route(self, request_type: str):
         """

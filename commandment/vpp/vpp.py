@@ -92,13 +92,12 @@ class VPPUserCursor(VPPCursor):
         Returns:
             next VPPUserCursor or None when batch is exhausted
         """
-        if self.batch_token is not None:
-            next_cursor = self._vpp.users(batch_token=self.batch_token)
-            next_cursor.includes_retired = self.includes_retired
-
-            return next_cursor
-        else:
+        if self.batch_token is None:
             return None
+        next_cursor = self._vpp.users(batch_token=self.batch_token)
+        next_cursor.includes_retired = self.includes_retired
+
+        return next_cursor
 
 
 class VPPLicenseCursor(VPPCursor):
@@ -121,12 +120,11 @@ class VPPLicenseCursor(VPPCursor):
         Returns:
             next VPPLicenseCursor or None when batch is exhausted
         """
-        if self.batch_token is not None:
-            next_cursor = self._vpp.licenses(batch_token=self.batch_token)
-            self._current = next_cursor._current
-            return self
-        else:
+        if self.batch_token is None:
             return None
+        next_cursor = self._vpp.licenses(batch_token=self.batch_token)
+        self._current = next_cursor._current
+        return self
 
 
 class VPPLicenseOperation(object):
@@ -553,9 +551,7 @@ class VPP(object):
         }
 
         res = self._session.post(self._service_config['manageVPPLicensesByAdamIdSrvUrl'], data=json.dumps(request_body))
-        reply = res.json()
-
-        return reply
+        return res.json()
 
     def bulk_update_licenses(self,
                              adam_id: int,
@@ -596,6 +592,4 @@ class VPP(object):
             request_body[VPP.DisassociationProperties[disassociation_type]] = disassociate
 
         res = self._session.post(self._service_config['manageVPPLicensesByAdamIdSrvUrl'], data=json.dumps(request_body))
-        reply = res.json()
-
-        return reply
+        return res.json()

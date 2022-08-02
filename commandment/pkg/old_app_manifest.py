@@ -64,15 +64,19 @@ def get_pkg_bundle_ids(filename):
 
         # capture the pkg IDs and versions by searching for 'pkg-ref' elements
         # which include a 'version' attribute on them. append them to our list
-        for i in dist_md.getElementsByTagName('pkg-ref'):
-            if i.hasAttribute('version'):
-                pkgs.append((i.getAttribute('id'), i.getAttribute('version')))
+        pkgs.extend(
+            (i.getAttribute('id'), i.getAttribute('version'))
+            for i in dist_md.getElementsByTagName('pkg-ref')
+            if i.hasAttribute('version')
+        )
 
         # capture the bundle IDs and versions by searching for 'bundle'
         # elements which we're searching for a 'CFBundleVersion' attribute on
         # them. append them to our list
-        for i in dist_md.getElementsByTagName('bundle'):
-            bundles.append((i.getAttribute('id'), i.getAttribute('CFBundleVersion')))
+        bundles.extend(
+            (i.getAttribute('id'), i.getAttribute('CFBundleVersion'))
+            for i in dist_md.getElementsByTagName('bundle')
+        )
 
         print('Removing Distribution file')
         os.unlink(tmp_dist_file)
@@ -83,8 +87,10 @@ def get_pkg_bundle_ids(filename):
 
         # capture the pkg ID and version by searching for a pkg-info element
         # and using the identifier and version attributes
-        for i in pinf_md.getElementsByTagName('pkg-info'):
-            pkgs.append((i.getAttribute('identifier'), i.getAttribute('version')))
+        pkgs.extend(
+            (i.getAttribute('identifier'), i.getAttribute('version'))
+            for i in pinf_md.getElementsByTagName('pkg-info')
+        )
 
         print('Removing PackageInfo file')
         os.unlink(tmp_pinf_file)

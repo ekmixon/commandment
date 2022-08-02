@@ -104,9 +104,6 @@ class DEP:
         See Also:
             - `Footnote about **X-ADM-Auth-Session** under Response Payload <https://developer.apple.com/library/content/documentation/Miscellaneous/Reference/MobileDeviceManagementProtocolRef/4-Profile_Management/ProfileManagement.html#//apple_ref/doc/uid/TP40017387-CH7-SW2>`_.
         """
-        if r.status_code == 401:  # Token may be expired, or token is invalid
-            pass  # TODO: Need token refresh as decorator
-
         # If the service gives us another session token, that replaces our current token.
         if 'X-ADM-Auth-Session' in r.headers:
             self._session_token = r.headers['X-ADM-Auth-Session']
@@ -159,7 +156,7 @@ class DEP:
         Returns:
               Union[str, None]: The token that was returned (already set on this instance), or None if it failed.
         """
-        res = self._session.get(self._url + "/session", auth=self._oauth)
+        res = self._session.get(f"{self._url}/session", auth=self._oauth)
         try:
             res.raise_for_status()
         except requests.HTTPError as e:
@@ -188,7 +185,7 @@ class DEP:
                Union[None, dict]: The account information, or None if it failed.
         """
         logger.debug("Fetching DEP account information")
-        res = self.send(requests.Request("GET", self._url + "/account"))
+        res = self.send(requests.Request("GET", f"{self._url}/account"))
         return res.json()
 
     def fetch_devices(self, cursor: Union[str, None] = None, limit: int = 100) -> dict:
@@ -200,7 +197,12 @@ class DEP:
         Returns:
               dict: Response as per the sync devices documentation.
         """
-        req = requests.Request("POST", self._url + "/server/devices", json={'limit': limit, 'cursor': cursor})
+        req = requests.Request(
+            "POST",
+            f"{self._url}/server/devices",
+            json={'limit': limit, 'cursor': cursor},
+        )
+
         res = self.send(req)
         return res.json()
 
@@ -213,7 +215,12 @@ class DEP:
         Returns:
               dict: Response as per the sync devices documentation.
         """
-        req = requests.Request("POST", self._url + "/devices/sync", json={'limit': limit, 'cursor': cursor})
+        req = requests.Request(
+            "POST",
+            f"{self._url}/devices/sync",
+            json={'limit': limit, 'cursor': cursor},
+        )
+
         res = self.send(req)
         return res.json()
 
@@ -241,7 +248,10 @@ class DEP:
         Returns:
               dict: Device information
         """
-        req = requests.Request("POST", self._url + "/devices", json={'devices': serial_numbers})
+        req = requests.Request(
+            "POST", f"{self._url}/devices", json={'devices': serial_numbers}
+        )
+
         res = self.send(req)
         return res.json()
 
@@ -252,7 +262,7 @@ class DEP:
               profile (dict): A DEP profile.
 
         """
-        req = requests.Request("POST", self._url + "/profile", json=profile)
+        req = requests.Request("POST", f"{self._url}/profile", json=profile)
         res = self.send(req)
         return res.json()
 
@@ -266,8 +276,12 @@ class DEP:
         Returns:
               dict: Assignment information
         """
-        req = requests.Request("POST", self._url + "/profile/devices",
-                               json={'profile_uuid': profile_uuid, 'devices': serial_numbers})
+        req = requests.Request(
+            "POST",
+            f"{self._url}/profile/devices",
+            json={'profile_uuid': profile_uuid, 'devices': serial_numbers},
+        )
+
         res = self.send(req)
         return res.json()
 
@@ -280,8 +294,12 @@ class DEP:
         Returns:
               dict: Assignment information
         """
-        req = requests.Request("DELETE", self._url + "/profile/devices",
-                               json={'devices': serial_numbers})
+        req = requests.Request(
+            "DELETE",
+            f"{self._url}/profile/devices",
+            json={'devices': serial_numbers},
+        )
+
         res = self.send(req)
         return res.json()
 
@@ -295,7 +313,7 @@ class DEP:
               dict: Profile
         """
         params = {'profile_uuid': uuid} if uuid is not None else None
-        req = requests.Request("GET", self._url + "/profile", params=params)
+        req = requests.Request("GET", f"{self._url}/profile", params=params)
         res = self.send(req)
         return res.json()
 
@@ -339,15 +357,11 @@ class DEPBaseCursor(object):
 
     @property
     def cursor(self) -> Optional[str]:
-        if not self.results:
-            return None
-        return self.results.get('cursor', None)
+        return self.results.get('cursor', None) if self.results else None
 
     @property
     def more_to_follow(self) -> bool:
-        if not self.results:
-            return True
-        return self.results.get('more_to_follow', False)
+        return self.results.get('more_to_follow', False) if self.results else True
 
     def __iter__(self):
         return self

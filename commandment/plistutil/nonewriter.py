@@ -9,11 +9,7 @@ class PlistNoneWriter(_PlistWriter):
     def write_dict(self, d):
         if d:
             self.begin_element("dict")
-            if self._sort_keys:
-                items = sorted(d.items())
-            else:
-                items = d.items()
-
+            items = sorted(d.items()) if self._sort_keys else d.items()
             for key, value in items:
                 if not isinstance(key, str):
                     if self._skipkeys:
@@ -22,7 +18,7 @@ class PlistNoneWriter(_PlistWriter):
 
                 if value is None:
                     continue
-                    
+
                 self.simple_element("key", key)
                 self.write_value(value)
             self.end_element("dict")

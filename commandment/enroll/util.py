@@ -44,18 +44,18 @@ def generate_enroll_profile(pkcs12_payload: Optional[PKCS12CertificatePayload] =
     if os.path.exists(push_certificate_path):
         push_certificate_basename, ext = os.path.splitext(push_certificate_path)
         if ext.lower() == '.p12':  # push service will have re-exported the PKCS#12 container
-            push_certificate_path = push_certificate_basename + '.crt'
+            push_certificate_path = f'{push_certificate_basename}.crt'
 
         with open(push_certificate_path, 'rb') as fd:
             push_certificate = x509.load_pem_x509_certificate(fd.read(), backend=default_backend())
     else:
-        abort(500, 'No push certificate available at: {}'.format(push_certificate_path))
+        abort(500, f'No push certificate available at: {push_certificate_path}')
 
     if not org.payload_prefix:
         abort(500, 'MDM configuration has no profile prefix')
 
     profile = Profile(
-        identifier=org.payload_prefix + '.enroll',
+        identifier=f'{org.payload_prefix}.enroll',
         uuid=uuid4(),
         display_name='Commandment Enrollment Profile',
         description='Enrolls your device for Mobile Device Management',
@@ -63,6 +63,7 @@ def generate_enroll_profile(pkcs12_payload: Optional[PKCS12CertificatePayload] =
         version=1,
         scope=PayloadScope.System,
     )
+
 
     if 'CA_CERTIFICATE' in current_app.config:
         # If you specified a CA certificate, we assume it isn't a CA trusted by Apple devices.
@@ -93,19 +94,20 @@ def generate_enroll_profile(pkcs12_payload: Optional[PKCS12CertificatePayload] =
 
     mdm_payload = MDMPayload(
         uuid=uuid4(),
-        identifier=org.payload_prefix + '.mdm',
+        identifier=f'{org.payload_prefix}.mdm',
         identity_certificate_uuid=cert_uuid,
         topic=push_topic,
-        server_url='https://{}:{}/mdm'.format(current_app.config['PUBLIC_HOSTNAME'], current_app.config['PORT']),
+        server_url=f"https://{current_app.config['PUBLIC_HOSTNAME']}:{current_app.config['PORT']}/mdm",
         access_rights=AccessRights.All.value,
-        check_in_url='https://{}:{}/checkin'.format(current_app.config['PUBLIC_HOSTNAME'], current_app.config['PORT']),
+        check_in_url=f"https://{current_app.config['PUBLIC_HOSTNAME']}:{current_app.config['PORT']}/checkin",
         sign_message=True,
         check_out_when_removed=True,
         display_name='Device Configuration and Management',
         server_capabilities=['com.apple.mdm.per-user-connections'],
         description='Enrolls your device with the MDM server',
-        version=1
+        version=1,
     )
+
     profile.payloads.append(mdm_payload)
 
     return profile

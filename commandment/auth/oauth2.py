@@ -81,8 +81,7 @@ class ImplicitGrant(_ImplicitGrant):
 class PasswordGrant(_PasswordGrant):
     def authenticate_user(self, username, password):
         current_app.logger.info('user: %s logging in using resource owner password grant', username)
-        user = User.query.filter_by(name=username).first()
-        return user
+        return User.query.filter_by(name=username).first()
         # if user.check_password(password):
         #     return user
 
@@ -132,9 +131,7 @@ class RevocationEndpoint(_RevocationEndpoint):
             return q.filter_by(access_token=token).first()
         elif token_type_hint == 'refresh_token':
             return q.filter_by(refresh_token=token).first()
-        # without token_type_hint
-        item = q.filter_by(access_token=token).first()
-        if item:
+        if item := q.filter_by(access_token=token).first():
             return item
         return q.filter_by(refresh_token=token).first()
 

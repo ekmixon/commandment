@@ -48,11 +48,7 @@ def to_pem(certificate: x509.Certificate) -> str:
     Returns:
           PEM string
     """
-    serialized = certificate.public_bytes(
-        encoding=serialization.Encoding.PEM
-    )
-
-    return serialized
+    return certificate.public_bytes(encoding=serialization.Encoding.PEM)
 
 
 def to_der(certificate: x509.Certificate) -> bytes:
@@ -63,10 +59,8 @@ def to_der(certificate: x509.Certificate) -> bytes:
     Returns:
           DER bytes    
     """
-    serialized = certificate.public_bytes(
+    return certificate.public_bytes(
         encoding=serialization.Encoding.DER,
         format=serialization.PublicFormat.PKCS8,
-        encryption_algorithm=serialization.NoEncryption()
+        encryption_algorithm=serialization.NoEncryption(),
     )
-
-    return serialized

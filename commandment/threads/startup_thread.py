@@ -42,13 +42,16 @@ def split_pkcs12(app: Flask):
 
         push_certificate_path = app.config['PUSH_CERTIFICATE']
         if not os.path.exists(push_certificate_path):
-            raise RuntimeError('You specified a push certificate at: {}, but it does not exist.'.format(push_certificate_path))
+            raise RuntimeError(
+                f'You specified a push certificate at: {push_certificate_path}, but it does not exist.'
+            )
+
 
         # We can handle loading PKCS#12 but APNS2Client specifically requests PEM encoded certificates
         push_certificate_basename, ext = os.path.splitext(push_certificate_path)
         if ext.lower() == '.p12':
-            pem_key_path = push_certificate_basename + '.key'
-            pem_certificate_path = push_certificate_basename + '.crt'
+            pem_key_path = f'{push_certificate_basename}.key'
+            pem_certificate_path = f'{push_certificate_basename}.crt'
 
             if not os.path.exists(pem_key_path) or not os.path.exists(pem_certificate_path):
                 app.logger.info('You provided a PKCS#12 push certificate, we will have to encode it as PEM to continue...')

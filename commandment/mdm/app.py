@@ -88,7 +88,7 @@ def token_update(plist_data):
     # TODO: a TokenUpdate can either be for a device or a user (per OS X extensions)
     if 'UserID' in plist_data:
         device_user = DeviceUser(
-            
+
         )
         return 'OK'
 
@@ -99,9 +99,6 @@ def token_update(plist_data):
             device_certificate = DeviceIdentityCertificate.from_crypto(g.signers[0])
             db.session.add(device_certificate)
             device.certificate = device_certificate
-        else:
-            pass  # TODO: if in debug mode this should not throw an exception to deal with cert troubleshooting
-
         device_enrolled.send(device)
         queue_full_inventory(device)
 
@@ -147,12 +144,17 @@ def check_out(plist_data):
     try:
         d = db.session.query(Device).filter(Device.udid == device_udid).one()
     except NoResultFound:
-        current_app.logger.warning('Attempted to unenroll device with UDID: {}, but none was found'.format(device_udid))
+        current_app.logger.warning(
+            f'Attempted to unenroll device with UDID: {device_udid}, but none was found'
+        )
+
         return abort(404, 'No matching device found')
 
     except MultipleResultsFound:
         current_app.logger.warning(
-            'Attempted to unenroll device with UDID: {}, but there were multiple, check your database'.format(device_udid))
+            f'Attempted to unenroll device with UDID: {device_udid}, but there were multiple, check your database'
+        )
+
         return abort(500, 'Too many devices matching')
 
     d.last_seen = datetime.utcnow()
@@ -163,7 +165,7 @@ def check_out(plist_data):
     d.push_magic = None
 
     db.session.commit()
-    current_app.logger.debug('Device has been unenrolled, UDID: {}'.format(device_udid))
+    current_app.logger.debug(f'Device has been unenrolled, UDID: {device_udid}')
 
     return 'OK'
 

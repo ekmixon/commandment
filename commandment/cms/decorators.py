@@ -32,7 +32,7 @@ def _verify_cms_signers(signed_data: bytes, detached: bool = False) -> Tuple[Lis
         pad_function = _cryptography_pad_function(signature_algorithm)
 
         if hash_function is None or pad_function is None:
-            raise ValueError('Unsupported signature algorithm: {}'.format(signature_algorithm))
+            raise ValueError(f'Unsupported signature algorithm: {signature_algorithm}')
         else:
             current_app.logger.debug("Using signature algorithm: %s", signature_algorithm.native)
 
@@ -44,7 +44,7 @@ def _verify_cms_signers(signed_data: bytes, detached: bool = False) -> Tuple[Lis
             data = signed['encap_content_info']['content'].native
 
         if 'signed_attrs' in signer and len(signer['signed_attrs']) > 0:
-            for i in range(0, len(signer['signed_attrs'])):
+            for i in range(len(signer['signed_attrs'])):
                 signed_attr: CMSAttribute = signer['signed_attrs'][i]
 
                 if signed_attr['type'].native == "message_digest":

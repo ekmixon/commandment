@@ -145,7 +145,7 @@ class ProfileSchema(Schema):
                 result = schema().dump(payload)
                 payloads.append(result.data)
             else:
-                print('Unsupported PayloadType: {}'.format(payload.type))
+                print(f'Unsupported PayloadType: {payload.type}')
 
         return payloads
 
@@ -158,7 +158,7 @@ class ProfileSchema(Schema):
                 result = schema().load(content)
                 payloads.append(result.data)
             else:
-                print('Unsupported PayloadType: {}'.format(content['PayloadType']))
+                print(f"Unsupported PayloadType: {content['PayloadType']}")
 
         return payloads
 
@@ -166,8 +166,7 @@ class ProfileSchema(Schema):
     @post_load
     def make_profile(self, data):
         payloads = data.pop('PayloadContent', [])
-        p = models.Profile(**data)
         # for pl in payloads:
         #     p.payloads.append(pl)
 
-        return p
+        return models.Profile(**data)

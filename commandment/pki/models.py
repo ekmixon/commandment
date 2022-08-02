@@ -142,25 +142,22 @@ class CertificateAuthority(db.Model):
             x509.NameAttribute(NameOID.ORGANIZATION_NAME, 'commandment')
         ])
 
-        cert = b.not_valid_before(
-            datetime.datetime.utcnow()
-        ).not_valid_after(
-            datetime.datetime.utcnow() + datetime.timedelta(days=self.validity_period)
-        ).serial_number(
-            self.serial
-        ).issuer_name(
-            name
-        ).subject_name(
-            request.subject
-        ).public_key(
-            request.public_key()
-        ).sign(private_key, hashes.SHA256(), default_backend())
-
         # cert_model = DeviceIdentityCertificate().from_crypto(cert)
         # db.session.add(cert_model)
         # db.session.commit()
 
-        return cert
+        return (
+            b.not_valid_before(datetime.datetime.utcnow())
+            .not_valid_after(
+                datetime.datetime.utcnow()
+                + datetime.timedelta(days=self.validity_period)
+            )
+            .serial_number(self.serial)
+            .issuer_name(name)
+            .subject_name(request.subject)
+            .public_key(request.public_key())
+            .sign(private_key, hashes.SHA256(), default_backend())
+        )
 
 
 class CertificateType(Enum):
@@ -277,12 +274,11 @@ class RSAPrivateKey(db.Model):
 
     def to_crypto(self) -> rsa.RSAPrivateKey:
         """Convert an SQLAlchemy RSAPrivateKey model to a cryptography RSA Private Key."""
-        pk = serialization.load_pem_private_key(
+        return serialization.load_pem_private_key(
             self.pem_data,
             backend=default_backend(),
             password=None,
         )
-        return pk
 
 
 class CertificateSigningRequest(Certificate):
@@ -327,8 +323,7 @@ class PushCertificate(Certificate):
 
     @classmethod
     def from_crypto(cls, certificate: x509.Certificate):
-        m = Certificate.from_crypto_type(certificate, CertificateType.PUSH)
-        return m
+        return Certificate.from_crypto_type(certificate, CertificateType.PUSH)
 
 
 class CACertificate(Certificate):
@@ -339,8 +334,7 @@ class CACertificate(Certificate):
 
     @classmethod
     def from_crypto(cls, certificate: x509.Certificate):  # type: () -> CACertificate
-        m = cls.from_crypto_type(certificate, CertificateType.CA)
-        return m
+        return cls.from_crypto_type(certificate, CertificateType.CA)
 
 
 class DeviceIdentityCertificate(Certificate):

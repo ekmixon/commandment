@@ -23,8 +23,5 @@ def find_recipient(cms_data: bytes) -> Optional[Certificate]:
             recipient_id: RecipientIdentifier = recipient['rid']
             assert recipient_id.name == 'issuer_and_serial_number'
 
-        else:
-            pass  # Unsupported recipient type
-
     return None
 

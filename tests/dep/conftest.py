@@ -13,7 +13,7 @@ SIMULATOR_URL = 'http://localhost:8080'
 
 @pytest.fixture
 def simulator_token() -> dict:
-    res = requests.get('{}/token'.format(SIMULATOR_URL))
+    res = requests.get(f'{SIMULATOR_URL}/token')
     return res.json()
 
 
@@ -38,15 +38,13 @@ def live_dep_profile() -> str:
 
 @pytest.fixture
 def dep(simulator_token: dict) -> DEP:
-    d = DEP(
+    return DEP(
         consumer_key=simulator_token['consumer_key'],
         consumer_secret=simulator_token['consumer_secret'],
         access_token=simulator_token['access_token'],
         access_secret=simulator_token['access_secret'],
         url=SIMULATOR_URL,
     )
-
-    return d
 
 
 @pytest.fixture
@@ -56,7 +54,7 @@ def dep_live(live_token: str):
 
 @pytest.fixture
 def dep_profile() -> dict:
-    p = {
+    return {
         'profile_name': 'Fixture Profile',
         'url': 'https://localhost:5433',
         'allow_pairing': True,
@@ -75,7 +73,6 @@ def dep_profile() -> dict:
         'department': 'Commandment Dept',
         'devices': [],
     }
-    return p
 
 
 @pytest.fixture

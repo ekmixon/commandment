@@ -28,17 +28,14 @@ class GUID(TypeDecorator):
         elif dialect.name == 'postgresql':
             return str(value)
         else:
-            if not isinstance(value, uuid.UUID):
-                return "%.32x" % uuid.UUID(value).int
-            else:
-                # hexstring
-                return "%.32x" % value.int
+            return (
+                "%.32x" % value.int
+                if isinstance(value, uuid.UUID)
+                else "%.32x" % uuid.UUID(value).int
+            )
 
     def process_result_value(self, value, dialect):
-        if value is None:
-            return value
-        else:
-            return uuid.UUID(value)
+        return value if value is None else uuid.UUID(value)
 
 
 def json_datetime_serializer(o):
@@ -51,7 +48,7 @@ def json_datetime_serializer(o):
     if isinstance(o, datetime):
         return o.isoformat()
 
-    raise TypeError(repr(o) + " is not JSON serializable")
+    raise TypeError(f"{repr(o)} is not JSON serializable")
 
 
 class JSONEncodedDict(TypeDecorator):
@@ -65,10 +62,7 @@ class JSONEncodedDict(TypeDecorator):
         return json.dumps(value, separators=(',', ':'), default=json_datetime_serializer)
 
     def process_result_value(self, value, dialect):
-        if not value:
-            return None
-
-        return json.loads(value)
+        return json.loads(value) if value else None
 
 
 class SetOfEnumValues(TypeDecorator):
@@ -90,5 +84,4 @@ class SetOfEnumValues(TypeDecorator):
             return None
 
         values = json.loads(value)
-        evalues = [self.values(v) for v in values]
-        return evalues
+        return [self.values(v) for v in values]

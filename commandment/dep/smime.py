@@ -74,5 +74,4 @@ def decrypt_smime_content(payload: bytes, key: rsa.RSAPrivateKey) -> bytes:
     cipher = Cipher(symkey, modes.CBC(algorithm.encryption_iv), backend=default_backend())
     decryptor = cipher.decryptor()
 
-    decrypted_data = decryptor.update(encrypted_content_bytes) + decryptor.finalize()
-    return decrypted_data
+    return decryptor.update(encrypted_content_bytes) + decryptor.finalize()

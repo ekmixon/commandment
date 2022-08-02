@@ -14,8 +14,7 @@ class DEPServerTokenCertificate(Certificate):
 
     @classmethod
     def from_crypto(cls, certificate: x509.Certificate):
-        m = Certificate.from_crypto_type(certificate, CertificateType.STOKEN)
-        return m
+        return Certificate.from_crypto_type(certificate, CertificateType.STOKEN)
 
 
 class DEPAnchorCertificate(Certificate):

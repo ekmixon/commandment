@@ -9,8 +9,10 @@ def mdm_service_config():
     public_hostname = current_app.config.get('PUBLIC_HOSTNAME', 'localhost')
     port = current_app.config.get('PORT', 443)
 
-    return jsonify({
-        'dep_enrollment_url': 'https://{}:{}/dep/profile'.format(public_hostname, port),
-        'dep_anchor_certs_url': 'https://{}:{}/dep/anchor_certs'.format(public_hostname, port),
-        'trust_profile_url': 'https://{}:{}/enroll/trust.mobileconfig'.format(public_hostname, port)
-    })
+    return jsonify(
+        {
+            'dep_enrollment_url': f'https://{public_hostname}:{port}/dep/profile',
+            'dep_anchor_certs_url': f'https://{public_hostname}:{port}/dep/anchor_certs',
+            'trust_profile_url': f'https://{public_hostname}:{port}/enroll/trust.mobileconfig',
+        }
+    )

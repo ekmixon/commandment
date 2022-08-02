@@ -15,7 +15,7 @@ def blow_chunks(fileobj) -> Tuple[str, List[str]]:
     fileobj.seek(0)
     chunks = []
     total_hash = hashlib.md5()
-    
+
     for chunk in iter(lambda: fileobj.read(MD5_CHUNK_SIZE), b''):
         new_hash = hashlib.md5()
         new_hash.update(chunk)
@@ -44,13 +44,9 @@ def url_from_metadata(path: str) -> Optional[str]:
 
     if 'com.apple.metadata:kMDItemWhereFroms' not in extd_attrs:
         return None
-    else:
-        plist_data: bytes = extd_attrs['com.apple.metadata:kMDItemWhereFroms']
-        value: List[str] = plistlib.loads(plist_data)
-        if len(value) > 0:
-            return value.pop(0)
-        else:
-            return None
+    plist_data: bytes = extd_attrs['com.apple.metadata:kMDItemWhereFroms']
+    value: List[str] = plistlib.loads(plist_data)
+    return value.pop(0) if value else None
 
 
 def main():
@@ -89,22 +85,29 @@ def main():
     url = url_from_metadata(args.source)
 
     manifest = {
-        'items': [{
-            'assets': [{
-                'kind': 'software-package',
-                'md5-size': MD5_CHUNK_SIZE,
-                'md5s': chunks,
-                'url': '{}'.format(url) if url else 'https://package/url/here.pkg'
-            }],
-            'metadata': {
-                'kind': 'software',
-                'title': title,
-                'sizeInBytes': file_size,
-                'bundle-identifier': '',
-                'bundle-version': ''
+        'items': [
+            {
+                'assets': [
+                    {
+                        'kind': 'software-package',
+                        'md5-size': MD5_CHUNK_SIZE,
+                        'md5s': chunks,
+                        'url': f'{url}'
+                        if url
+                        else 'https://package/url/here.pkg',
+                    }
+                ],
+                'metadata': {
+                    'kind': 'software',
+                    'title': title,
+                    'sizeInBytes': file_size,
+                    'bundle-identifier': '',
+                    'bundle-version': '',
+                },
             }
-        }]
+        ]
     }
+
 
     pkgs_bundles = [{'bundle-identifier': i[0], 'bundle-version': i[1]} for i in packages]
     manifest['items'][0]['metadata'].update(pkgs_bundles[0])

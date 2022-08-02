@@ -109,15 +109,14 @@ def ack_profile_list(request: DBCommand, device: Device, response: dict):
         # Reconcile profiles which should be installed
         if profile.payload_uuid in desired_profiles:
             del desired_profiles[profile.payload_uuid]
-        else:
-            if not profile.is_managed:
-                current_app.logger.debug("Skipping removal of unmanaged profile: %s", profile.payload_display_name)
-            else:
-                current_app.logger.debug("Going to remove: %s", profile.payload_display_name)
-                remove_profiles.append(profile)
+        elif profile.is_managed:
+            current_app.logger.debug("Going to remove: %s", profile.payload_display_name)
+            remove_profiles.append(profile)
 
+        else:
+            current_app.logger.debug("Skipping removal of unmanaged profile: %s", profile.payload_display_name)
     # Queue up some desired profiles
-    for puuid, p in desired_profiles.items():
+    for p in desired_profiles.values():
         c = commands.InstallProfile(None, profile=p)
         dbc = DBCommand.from_model(c)
         dbc.device = device
@@ -149,7 +148,9 @@ def ack_certificate_list(request: DBCommand, device: Device, response: dict):
 
     certificates = response['CertificateList']
     current_app.logger.debug(
-        'Received CertificatesList response containing {} certificate(s)'.format(len(certificates)))
+        f'Received CertificatesList response containing {len(certificates)} certificate(s)'
+    )
+
 
     for cert in certificates:
         ic = InstalledCertificate()
@@ -191,8 +192,9 @@ def ack_installed_app_list(request: DBCommand, device: Device, response: dict):
 
     applications = response['InstalledApplicationList']
     current_app.logger.debug(
-        'Received InstalledApplicationList response containing {} application(s)'.format(len(applications))
+        f'Received InstalledApplicationList response containing {len(applications)} application(s)'
     )
+
 
     schema = InstalledApplicationListResponse()
     result, errors = schema.load(response)
@@ -219,23 +221,19 @@ def ack_installed_app_list(request: DBCommand, device: Device, response: dict):
 @command_router.route('InstallProfile')
 def ack_install_profile(request: DBCommand, device: Device, response: dict):
     """Acknowledge a response to ``InstallProfile``."""
-    if response.get('Status', None) == 'Error':
-        pass
+    pass
 
 
 @command_router.route('RemoveProfile')
 def ack_install_profile(request: DBCommand, device: Device, response: dict):
     """Acknowledge a response to ``RemoveProfile``."""
-    if response.get('Status', None) == 'Error':
-        pass
+    pass
 
 
 @command_router.route('AvailableOSUpdates')
 def ack_available_os_updates(request: DBCommand, device: Device, response: dict):
     """Acknowledge a response to AvailableOSUpdates"""
-    if response.get('Status', None) == 'Error':
-        pass
-    else:
+    if response.get('Status', None) != 'Error':
         for au in device.available_os_updates:
             db.session.delete(au)
 
@@ -261,9 +259,7 @@ def ack_install_application(request: DBCommand, device: Device, response: dict):
 
     TODO: Also create a pending status when the command is queued but not acked
     """
-    if response.get('Status', None) == 'Error':
-        pass
-    else:
+    if response.get('Status', None) != 'Error':
         try:
             # It is possible to send `InstallApplication` and receive Acknowledged multiple times for the same app,
             # so we want to avoid multiple rows in that scenario
@@ -289,43 +285,42 @@ def ack_install_application(request: DBCommand, device: Device, response: dict):
 def ack_managed_application_list(request: DBCommand, device: Device, response: dict):
     """Acknowledge a response to `ManagedApplicationList`."""
     if response.get('Status', None) == 'Error':
-        pass
-    else:
-        for bundle_id, status in response['ManagedApplicationList'].items():
-            try:
-                ma = db.session.query(ManagedApplication).filter(
-                    Device.id == device.id,
-                    ManagedApplication.bundle_id == bundle_id
-                ).one()
-            except NoResultFound:
-                ma = ManagedApplication(bundle_id=bundle_id, device=device)
+        return
+    for bundle_id, status in response['ManagedApplicationList'].items():
+        try:
+            ma = db.session.query(ManagedApplication).filter(
+                Device.id == device.id,
+                ManagedApplication.bundle_id == bundle_id
+            ).one()
+        except NoResultFound:
+            ma = ManagedApplication(bundle_id=bundle_id, device=device)
 
-            ma.status = ManagedAppStatus(status['Status'])
-            ma.external_version_id = status.get('ExternalVersionIdentifier', None)  # Does not exist in iOS 11.3.1
-            ma.has_configuration = status['HasConfiguration']
-            ma.has_feedback = status['HasFeedback']
-            ma.is_validated = status['IsValidated']
-            ma.management_flags = status['ManagementFlags']
+        ma.status = ManagedAppStatus(status['Status'])
+        ma.external_version_id = status.get('ExternalVersionIdentifier', None)  # Does not exist in iOS 11.3.1
+        ma.has_configuration = status['HasConfiguration']
+        ma.has_feedback = status['HasFeedback']
+        ma.is_validated = status['IsValidated']
+        ma.management_flags = status['ManagementFlags']
 
+        db.session.add(ma)
+
+    db.session.commit()
+
+    for tag in device.tags:
+        for app in tag.applications:
+            # TODO: need to check with new versions being available. This is very primitive.
+            if app.bundle_id in response['ManagedApplicationList'].keys():
+                continue
+
+            c = commands.InstallApplication(application=app)
+            dbc = DBCommand.from_model(c)
+            dbc.device = device
+            db.session.add(dbc)
+
+            ma = ManagedApplication(device=device, application=app, ia_command=dbc, status=ManagedAppStatus.Queued)
             db.session.add(ma)
 
-        db.session.commit()
-
-        for tag in device.tags:
-            for app in tag.applications:
-                # TODO: need to check with new versions being available. This is very primitive.
-                if app.bundle_id in response['ManagedApplicationList'].keys():
-                    continue
-
-                c = commands.InstallApplication(application=app)
-                dbc = DBCommand.from_model(c)
-                dbc.device = device
-                db.session.add(dbc)
-
-                ma = ManagedApplication(device=device, application=app, ia_command=dbc, status=ManagedAppStatus.Queued)
-                db.session.add(ma)
-
-        db.session.commit()
+    db.session.commit()
 
 
 @command_router.route('RestartDevice')

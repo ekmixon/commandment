@@ -130,9 +130,6 @@ def dep_fetch_devices(app: Flask, dep: DEP, dep_account_id: int):
                 else:
                     app.logger.error('DEP op_type not recognised (%s), skipping', device['op_type'])
                     continue
-            else:
-                pass
-
             try:
                 d: Device = thread_session.query(Device).filter(Device.serial_number == device['serial_number']).one()
                 d.description = device['description']
@@ -168,7 +165,7 @@ def dep_fetch_devices(app: Flask, dep: DEP, dep_account_id: int):
                 thread_session.add(d)
 
             except sqlalchemy.exc.StatementError as e:
-                app.logger.error('Got a statement error trying to insert a DEP device: {}'.format(e))
+                app.logger.error(f'Got a statement error trying to insert a DEP device: {e}')
 
         app.logger.debug('Last DEP Cursor was: %s', device_page['cursor'])
         dep_account.cursor = device_page.get('cursor', None)
@@ -195,7 +192,7 @@ def dep_define_profiles(app: Flask, dep: DEP):
             dep_profile.uuid = response['profile_uuid']
             dep_profile.last_uploaded_at = datetime.datetime.now()
         except Exception as e:
-            app.logger.error('Got an exception trying to define a profile: {}'.format(e))
+            app.logger.error(f'Got an exception trying to define a profile: {e}')
 
     thread_session.commit()
 

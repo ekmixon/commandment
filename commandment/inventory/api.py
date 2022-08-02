@@ -53,4 +53,4 @@ def download_installed_certificate(installed_certificate_id: int):
 
     prefix = c.x509_cn.strip('/\:') if c.x509_cn is not None else 'certificate'
 
-    return send_file(bio, 'application/x-x509-ca-cert', True, '{}.crt'.format(prefix))
+    return send_file(bio, 'application/x-x509-ca-cert', True, f'{prefix}.crt')

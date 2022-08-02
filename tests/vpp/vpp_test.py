@@ -75,7 +75,7 @@ class TestVPP:
         licenses = []
         total = cursor.total
         assert len(cursor.licenses) == 600
-        licenses = licenses + cursor.licenses
+        licenses += cursor.licenses
 
         while cursor.next():
             licenses = licenses + cursor.licenses

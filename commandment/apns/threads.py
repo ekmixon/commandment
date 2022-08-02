@@ -54,14 +54,17 @@ def push_thread_callback(app: Flask):
     while not push_thread_stopped.wait(push_time):
         app.logger.info('Push Thread checking for outstanding commands...')
         with app.app_context():
-            pending: Tuple[Device, int] = db.session.query(Device, func.Count(Command.id)).\
-                filter(Device.id == Command.device_id).\
-                filter(Command.status == CommandStatus.Queued).\
-                filter(Command.ttl > 0).\
-                filter(Command.after == None).\
-                filter(Device.is_enrolled == True).\
-                group_by(Device.id).\
-                all()
+            pending: Tuple[Device, int] = (
+                db.session.query(Device, func.Count(Command.id))
+                .filter(Device.id == Command.device_id)
+                .filter(Command.status == CommandStatus.Queued)
+                .filter(Command.ttl > 0)
+                .filter(Command.after is None)
+                .filter(Device.is_enrolled == True)
+                .group_by(Device.id)
+                .all()
+            )
+
 
             for d, c in pending:
                 app.logger.info('PENDING: %d command(s) for device UDID %s', c, d.udid)

@@ -16,7 +16,11 @@ class InstalledApplicationsList(ResourceList):
             try:
                 self.session.query(Device).filter_by(id=view_kwargs['device_id']).one()
             except NoResultFound:
-                raise ObjectNotFound({'parameter': 'device_id'}, "Device: {} not found".format(view_kwargs['device_id']))
+                raise ObjectNotFound(
+                    {'parameter': 'device_id'},
+                    f"Device: {view_kwargs['device_id']} not found",
+                )
+
             else:
                 query_ = query_.join(Device).filter(Device.id == view_kwargs['device_id'])
         return query_
@@ -44,7 +48,11 @@ class InstalledCertificatesList(ResourceList):
             try:
                 self.session.query(Device).filter_by(id=view_kwargs['device_id']).one()
             except NoResultFound:
-                raise ObjectNotFound({'parameter': 'device_id'}, "Device: {} not found".format(view_kwargs['device_id']))
+                raise ObjectNotFound(
+                    {'parameter': 'device_id'},
+                    f"Device: {view_kwargs['device_id']} not found",
+                )
+
             else:
                 query_ = query_.join(Device).filter(Device.id == view_kwargs['device_id'])
         return query_
@@ -89,7 +97,11 @@ class InstalledProfilesList(ResourceList):
             try:
                 self.session.query(Device).filter_by(id=view_kwargs['device_id']).one()
             except NoResultFound:
-                raise ObjectNotFound({'parameter': 'device_id'}, "Device: {} not found".format(view_kwargs['device_id']))
+                raise ObjectNotFound(
+                    {'parameter': 'device_id'},
+                    f"Device: {view_kwargs['device_id']} not found",
+                )
+
             else:
                 query_ = query_.join(Device).filter(Device.id == view_kwargs['device_id'])
         return query_
@@ -118,7 +130,11 @@ class AvailableOSUpdateList(ResourceList):
             try:
                 self.session.query(Device).filter_by(id=view_kwargs['device_id']).one()
             except NoResultFound:
-                raise ObjectNotFound({'parameter': 'device_id'}, "Device: {} not found".format(view_kwargs['device_id']))
+                raise ObjectNotFound(
+                    {'parameter': 'device_id'},
+                    f"Device: {view_kwargs['device_id']} not found",
+                )
+
             else:
                 query_ = query_.join(Device).filter(Device.id == view_kwargs['device_id'])
         return query_

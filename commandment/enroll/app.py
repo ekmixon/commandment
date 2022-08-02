@@ -28,9 +28,10 @@ enroll_app = Blueprint('enroll_app', __name__)
 
 
 def base64_to_pem(crypto_type, b64_text, width=76):
-    lines = ''
-    for pos in range(0, len(b64_text), width):
-        lines += b64_text[pos:pos + width] + '\n'
+    lines = ''.join(
+        b64_text[pos : pos + width] + '\n'
+        for pos in range(0, len(b64_text), width)
+    )
 
     return '-----BEGIN %s-----\n%s-----END %s-----' % (crypto_type, lines, crypto_type)
 
@@ -51,7 +52,7 @@ def trust_mobileconfig():
         abort(500, 'Multiple organizations, backup your database and start again')
 
     profile = Profile(
-        identifier=org.payload_prefix + '.trust',
+        identifier=f'{org.payload_prefix}.trust',
         uuid=uuid4(),
         display_name='Commandment Trust Profile',
         description='Allows your device to trust the MDM server',
@@ -59,6 +60,7 @@ def trust_mobileconfig():
         version=1,
         scope=PayloadScope.System,
     )
+
 
     if 'CA_CERTIFICATE' in current_app.config:
         # If you specified a CA certificate, we assume it isn't a CA trusted by Apple devices.
@@ -71,13 +73,14 @@ def trust_mobileconfig():
         with open(certpath, 'rb') as fd:
             pem_payload = PEMCertificatePayload(
                 uuid=uuid4(),
-                identifier=org.payload_prefix + '.ssl',
+                identifier=f'{org.payload_prefix}.ssl',
                 payload_content=fd.read(),
                 display_name='Web Server Certificate',
                 description='Required for your device to trust the server',
                 type='com.apple.security.pkcs1',
-                version=1
+                version=1,
             )
+
             profile.payloads.append(pem_payload)
 
     schema = profile_schema.ProfileSchema()
@@ -122,20 +125,19 @@ def ota_enroll():
 
     profile = {
         'PayloadType': 'Profile Service',
-        'PayloadIdentifier': org.payload_prefix + '.ota.enroll',
-        'PayloadUUID': 'FACC45E7-CB0E-4F8B-AA3E-E22DC161E25E', #str(uuid4()),
+        'PayloadIdentifier': f'{org.payload_prefix}.ota.enroll',
+        'PayloadUUID': 'FACC45E7-CB0E-4F8B-AA3E-E22DC161E25E',
         'PayloadVersion': 1,
         'PayloadDisplayName': 'Commandment Profile Service',
         'PayloadDescription': 'Enrolls your device with Commandment',
         'PayloadOrganization': org.name,
         'PayloadContent': {
-            'URL': 'https://{}:{}/enroll/ota_authenticate'.format(
-                current_app.config['PUBLIC_HOSTNAME'], current_app.config['PORT']
-            ),
+            'URL': f"https://{current_app.config['PUBLIC_HOSTNAME']}:{current_app.config['PORT']}/enroll/ota_authenticate",
             'DeviceAttributes': list(AllDeviceAttributes),
             'Challenge': 'TODO',
         },
     }
+
     plist_data = dumps_none(profile)
 
     return plist_data, 200, {'Content-Type': PROFILE_CONTENT_TYPE}
@@ -196,7 +198,7 @@ def ota_authenticate():
     if 'CHALLENGE' in device_attributes:
         # Reply SCEP
         profile = Profile(
-            identifier=org.payload_prefix + '.ota.phase3',
+            identifier=f'{org.payload_prefix}.ota.phase3',
             uuid=uuid4(),
             display_name='Commandment OTA SCEP Enrollment',
             description='Retrieves a SCEP Certificate to complete OTA Enrollment',
@@ -204,6 +206,7 @@ def ota_authenticate():
             version=1,
             scope=PayloadScope.System,
         )
+
 
         scep_payload = scep_payload_from_configuration()
         profile.payloads.append(scep_payload)

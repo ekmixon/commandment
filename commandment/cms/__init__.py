@@ -68,7 +68,4 @@ def _cryptography_pad_function(algorithm: SignedDigestAlgorithm) -> Union[None, 
         """
     signature_algo = algorithm.signature_algo
 
-    if signature_algo == "rsassa_pkcs1v15":
-        return padding.PKCS1v15
-    else:
-        return None
+    return padding.PKCS1v15 if signature_algo == "rsassa_pkcs1v15" else None

@@ -49,12 +49,10 @@ def push(device_id: int):
     device.last_push_at = datetime.utcnow()
     if response.status_code == 200:
         device.last_apns_id = response.apns_id
-        
+
     db.session.commit()
     push_res_schema = PushResponseFlatSchema()
-    result = push_res_schema.dumps(response)
-
-    return result
+    return push_res_schema.dumps(response)
 
 
 @api_push_app.route('/v1/mdmcert/request/<string:email>', methods=['GET'])
@@ -137,8 +135,12 @@ def mdmcert_decrypt():
             detail="Could not find a suitable private key to decrypt the given request",
         )
 
-    return result, 200, {
-        'Content-Type': 'application/octet-stream',
-        'Content-Disposition': 'attachment; filename=mdm_signed_request.%s.plist.b64' % datetime.now().strftime('%Y%m%d_%H%M%S'),
-    }
+    return (
+        result,
+        200,
+        {
+            'Content-Type': 'application/octet-stream',
+            'Content-Disposition': f"attachment; filename=mdm_signed_request.{datetime.now().strftime('%Y%m%d_%H%M%S')}.plist.b64",
+        },
+    )
 

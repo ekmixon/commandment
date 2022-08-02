@@ -14,26 +14,27 @@ logger = logging.getLogger(__name__)
 
 @pytest.fixture
 def private_key() -> rsa.RSAPrivateKey:
-    key = rsa.generate_private_key(
+    return rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
         backend=default_backend(),
     )
-    return key
 
 
 @pytest.fixture
 def csr(private_key: rsa.RSAPrivateKey) -> x509.CertificateSigningRequest:
     b = x509.CertificateSigningRequestBuilder()
-    req = b.subject_name(x509.Name([
-        x509.NameAttribute(NameOID.COUNTRY_NAME, u"US"),
-        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, u"CA"),
-        x509.NameAttribute(NameOID.LOCALITY_NAME, u"San Francisco"),
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"Commandment"),
-        x509.NameAttribute(NameOID.COMMON_NAME, u"Commandment"),
-    ])).sign(private_key, hashes.SHA256(), default_backend())
-
-    return req
+    return b.subject_name(
+        x509.Name(
+            [
+                x509.NameAttribute(NameOID.COUNTRY_NAME, u"US"),
+                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, u"CA"),
+                x509.NameAttribute(NameOID.LOCALITY_NAME, u"San Francisco"),
+                x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"Commandment"),
+                x509.NameAttribute(NameOID.COMMON_NAME, u"Commandment"),
+            ]
+        )
+    ).sign(private_key, hashes.SHA256(), default_backend())
 
 
 @pytest.fixture
@@ -41,8 +42,7 @@ def encryption_cert() -> x509.Certificate:
     with open(ENCRYPTION_CERT, 'rb') as fd:
         certdata = fd.read()
 
-    cert = x509.load_pem_x509_certificate(certdata, default_backend())
-    return cert
+    return x509.load_pem_x509_certificate(certdata, default_backend())
 
 
 # class TestMDMCert:

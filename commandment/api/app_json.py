@@ -304,7 +304,7 @@ def upload_profile():
 
     f = request.files['file']
 
-    if not f.content_type == 'application/x-apple-aspen-config':
+    if f.content_type != 'application/x-apple-aspen-config':
         abort(400, 'incorrect MIME type in request')
 
     try:
@@ -326,8 +326,9 @@ def upload_profile():
 
     profile_schema = ProfileSchema()
     model_data = profile_schema.dump(profile).data
-    resp = make_response(jsonify(model_data), 201, {'Content-Type': 'application/vnd.api+json'})
-    return resp
+    return make_response(
+        jsonify(model_data), 201, {'Content-Type': 'application/vnd.api+json'}
+    )
 
 
 @flat_api.route('/v1/download/profiles/<int:profile_id>')

@@ -83,7 +83,7 @@ class AccessRights(IntFlag):
     
     This enumeration contains all of those access rights flags.
     """
-    def _generate_next_value_(name, start, count, last_values):
+    def _generate_next_value_(self, start, count, last_values):
         return 2 ** count
 
     ProfileInspection = auto()

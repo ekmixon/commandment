@@ -15,9 +15,8 @@ logging.getLogger('asyncio').setLevel(logging.WARNING)
 
 async def initial_dep_fetch(dep: DEP):
     """Perform the initial DEP fetch, if required."""
-    for page in dep.devices():
-        for device in page:
-            pass
+    for _ in dep.devices():
+        pass
 
 async def dep_sync(consumer_key: str, consumer_secret: str, access_token: str, access_secret: str, url: str):
     dep = DEP(consumer_key, consumer_secret, access_token, access_secret, url)

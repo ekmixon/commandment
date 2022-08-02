@@ -5,7 +5,7 @@ from commandment.models import Device
 from sqlalchemy.orm.session import Session
 
 TEST_DIR = os.path.realpath(os.path.dirname(__file__))
-TEST_DATA_DIR = os.path.realpath(TEST_DIR + '/../../testdata')
+TEST_DATA_DIR = os.path.realpath(f'{TEST_DIR}/../../testdata')
 
 
 @pytest.fixture(scope='function')
